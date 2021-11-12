@@ -17,7 +17,7 @@ fi
 
 #------------------------
 
-./fluent-bit_version_1.8.sh
+./fluent-bit_version_1.8.9.sh
 
 #------------------------
 
@@ -33,11 +33,22 @@ docker run --name elasticsearch \
 
 sleep 10
 
-docker run --name graylog --link mongo --link elasticsearch \
+docker run --name graylog --link mongo --link elasticsearch --link fluent-bit \
     -p 9000:9000 -p 12201:12201 -p 1514:1514 \
     -e GRAYLOG_HTTP_EXTERNAL_URI="http://127.0.0.1:9000/" \
+    -e GRAYLOG_CONTENT_PACKS_AUTO_INSTALL="gelf-tcp-input-12201.json" \
+    -e GRAYLOG_CONTENT_PACKS_LOADER_ENABLED="true" \
+    -e GRAYLOG_CONTENT_PACKS_DIR="/usr/share/graylog/data/contentpacks" \
+    -v $(pwd)/configs/gelf-tcp-input-12201.json:/usr/share/graylog/data/contentpacks/gelf-tcp-input-12201.json \
     -d graylog/graylog:4.0
 
-sleep 15
+sleep 60
+echo ""
 
 docker ps -a --format "table {{.Names}} \t {{.Status}} \t {{.Ports}}" | grep "fluent-bit\|mongo\|elasticsearch\|graylog"
+
+echo ""
+echo "Please visit http://127.0.0.1:9000 for open Graylog Web Interface in your Browser"
+echo "login: admin"
+echo "pass: admin"
+echo ""

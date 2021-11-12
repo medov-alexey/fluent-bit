@@ -8,8 +8,7 @@ fi
 #------------------------
 
 app=fluent-bit
-version=1.8
-silent=""
+version=1.8.9
 
 #------------------------
 
@@ -24,7 +23,7 @@ fi
 
 #------------------------
 
-docker run -d --restart always --name $app -v $(pwd)/configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf -v $(pwd)/configs/parsers.conf:/fluent-bit/etc/parsers.conf -p 24224:24224 -p 5170:5170 -p 8888:8888 fluent/$app:$version || exit 1
+docker run -d --restart always --name $app -v $(pwd)/configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf -v $(pwd)/configs/parsers.conf:/fluent-bit/etc/parsers.conf -p 24224:24224 fluent/$app:$version || exit 1
 
 #------------------------
 
