@@ -8,12 +8,14 @@ fi
 #------------------------
 
 if [ "$1" == "delete" ] || [ "$1" == "drop" ] || [ "$1" == "uninstall" ] || [ "$1" == "remove" ]; then
-   docker rm -f fluent-bit mongo elasticsearch graylog > /dev/null 2>&1
+   docker rm -f fluent-bit mongo elasticsearch graylog testlog> /dev/null 2>&1
    echo ""
    echo "Containers for demonstrations was removed"
    echo ""
    exit 0
 fi
+
+docker network create demonstration > /dev/null 2>&1
 
 #------------------------
 
@@ -21,11 +23,11 @@ fi
 
 #------------------------
 
-docker run --name mongo -d mongo:4.2
+docker run --name mongo --network=demonstration -d mongo:4.2
 
 sleep 10
 
-docker run --name elasticsearch \
+docker run --name elasticsearch --network=demonstration \
     -e "http.host=0.0.0.0" \
     -e "discovery.type=single-node" \
     -e "ES_JAVA_OPTS=-Xms512m -Xmx512m" \
@@ -33,7 +35,7 @@ docker run --name elasticsearch \
 
 sleep 10
 
-docker run --name graylog --link mongo --link elasticsearch --link fluent-bit \
+docker run --name graylog --link mongo --link elasticsearch --link fluent-bit --network=demonstration\
     -p 9000:9000 -p 12201:12201 -p 1514:1514 \
     -e GRAYLOG_HTTP_EXTERNAL_URI="http://127.0.0.1:9000/" \
     -e GRAYLOG_CONTENT_PACKS_AUTO_INSTALL="gelf-tcp-input-12201.json" \
@@ -52,3 +54,7 @@ echo "Please visit http://127.0.0.1:9000 for open Graylog Web Interface in your 
 echo "login: admin"
 echo "pass: admin"
 echo ""
+
+echo "Sended a one big log message from Application on Docker to Fluent-Bit..."
+docker run -d --name testlog -v $(pwd)/logs_for_demo/big_json_log.txt:/tmp/log.txt --log-driver=fluentd --log-opt fluentd-address=127.0.0.1:24224 --log-opt fluentd-sub-second-precision=true alpine:latest cat /tmp/log.txt
+echo "Done"
