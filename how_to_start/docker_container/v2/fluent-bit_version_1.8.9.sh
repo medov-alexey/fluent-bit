@@ -23,7 +23,13 @@ fi
 
 #------------------------
 
-docker run -d --restart always --name $app -v $(pwd)/configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf -v $(pwd)/configs/parsers.conf:/fluent-bit/etc/parsers.conf -p 24224:24224 --network=demonstration fluent/$app:$version || exit 1
+docker run -d --restart always --name $app \
+-v $(pwd)/configs/fluent-bit.conf:/fluent-bit/etc/fluent-bit.conf \
+-v $(pwd)/configs/parsers.conf:/fluent-bit/etc/parsers.conf \
+-v /tmp/var/log/nginx:/var/log/nginx \
+-p 24224:24224 \
+--network=demonstration \
+fluent/$app:$version || exit 1
 
 #------------------------
 

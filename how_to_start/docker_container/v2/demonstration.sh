@@ -8,7 +8,9 @@ fi
 #------------------------
 
 if [ "$1" == "delete" ] || [ "$1" == "drop" ] || [ "$1" == "uninstall" ] || [ "$1" == "remove" ]; then
-   docker rm -f fluent-bit mongo elasticsearch graylog testlog> /dev/null 2>&1
+   docker rm -f fluent-bit mongo elasticsearch graylog testnginxlog > /dev/null 2>&1
+   rm -rf mkdir /tmp/var/log/nginx > /dev/null 2>&1
+   docker network rm demonstration
    echo ""
    echo "Containers for demonstrations was removed"
    echo ""
@@ -16,6 +18,12 @@ if [ "$1" == "delete" ] || [ "$1" == "drop" ] || [ "$1" == "uninstall" ] || [ "$
 fi
 
 docker network create demonstration > /dev/null 2>&1
+
+mkdir -p /tmp/var/log/nginx > /dev/null 2>&1
+
+chmod -R 777 /tmp/var/log/nginx > /dev/null 2>&1
+
+docker run -d --name testnginxlog -v /tmp/var/log/nginx:/var/log/nginx nginx:latest
 
 #------------------------
 
@@ -47,7 +55,7 @@ docker run --name graylog --link mongo --link elasticsearch --link fluent-bit --
 sleep 60
 echo ""
 
-docker ps -a --format "table {{.Names}} \t {{.Status}} \t {{.Ports}}" | grep "fluent-bit\|mongo\|elasticsearch\|graylog"
+docker ps -a --format "table {{.Names}} \t {{.Status}} \t {{.Ports}}" | grep "fluent-bit\|mongo\|elasticsearch\|graylog\|testnginxlog"
 
 echo ""
 echo "Please visit http://127.0.0.1:9000 for open Graylog Web Interface in your Browser"
@@ -55,6 +63,10 @@ echo "login: admin"
 echo "pass: admin"
 echo ""
 
-echo "Sended a one big log message from Application on Docker to Fluent-Bit..."
-docker run -d --name testlog -v $(pwd)/logs_for_demo/big_json_log.txt:/tmp/log.txt --log-driver=fluentd --log-opt fluentd-address=127.0.0.1:24224 --log-opt fluentd-sub-second-precision=true alpine:latest cat /tmp/log.txt
-echo "Done"
+for (( i=1; i <= 10; i++ ))
+do
+docker exec -it testnginxlog curl localhost:80 2>/dev/null > /dev/null;
+sleep 1
+done
+
+echo "Done."
