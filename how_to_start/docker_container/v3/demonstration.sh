@@ -8,7 +8,7 @@ fi
 #------------------------
 
 if [ "$1" == "delete" ] || [ "$1" == "drop" ] || [ "$1" == "uninstall" ] || [ "$1" == "remove" ]; then
-   docker rm -f fluent-bit mongo elasticsearch graylog > /dev/null 2>&1
+   docker rm -f fluent-bit mongo elasticsearch graylog testlog > /dev/null 2>&1
    docker network rm demonstration > /dev/null 2>&1
    echo ""
    echo "Containers for demonstrations was removed"
@@ -48,10 +48,14 @@ docker run --name graylog --link mongo --link elasticsearch --link fluent-bit --
 sleep 60
 echo ""
 
-docker ps -a --format "table {{.Names}} \t {{.Status}} \t {{.Ports}}" | grep "fluent-bit\|mongo\|elasticsearch\|graylog\|testnginxlog"
+docker ps -a --format "table {{.Names}} \t {{.Status}} \t {{.Ports}}" | grep "fluent-bit\|mongo\|elasticsearch\|graylog"
 
 echo ""
 echo "Please visit http://127.0.0.1:9000 for open Graylog Web Interface in your Browser"
 echo "login: admin"
 echo "pass: admin"
 echo ""
+
+docker run -d --name testlog -v $(pwd)/logs_for_demo:/tmp/ --log-opt tag=docker-container-tag python:3.10-alpine python /tmp/print.py
+
+date
